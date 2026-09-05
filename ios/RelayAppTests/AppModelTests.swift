@@ -108,6 +108,7 @@ private final class TestResponseCoordinator: ResponseCoordinating {
 
     var behavior: Behavior
     var flushError: (any Error)?
+    var flushResult: ResponseFlushResult = .empty
     private var continuation: CheckedContinuation<ResponseDeliveryDisposition, any Error>?
 
     init(behavior: Behavior) { self.behavior = behavior }
@@ -115,7 +116,7 @@ private final class TestResponseCoordinator: ResponseCoordinating {
     func configure(api: any RelayAPIClient) {}
     func flush() async throws -> ResponseFlushResult {
         if let flushError { throw flushError }
-        return .empty
+        return flushResult
     }
     func suspend() {}
     func clearAfterUnpair() throws {}
@@ -278,7 +279,9 @@ struct AppModelTests {
             api: ImmediateRelayClient(response: waiting),
             notificationCoordinator: coordinator,
             clearConfiguration: {},
-            endActivities: {}
+            endActivities: {},
+            notificationAuthorizationStatus: { .denied },
+            registerForRemoteNotifications: {}
         )
         await model.respond(to: waiting.interactions[0], with: .approve)
         coordinator.flushError = ResponseFlushPersistenceError(
@@ -289,6 +292,27 @@ struct AppModelTests {
         await model.becameActive()
 
         #expect(model.submissionStates["int_1"] == .failed("Could not update the durable queue"))
+    }
+
+    @Test func manualRefreshRetriesQueuedResponseAndUpdatesItsState() async throws {
+        let waiting = try inbox(status: "pending", response: nil)
+        let coordinator = TestResponseCoordinator(behavior: .immediate(.queued))
+        let model = AppModel(
+            api: ImmediateRelayClient(response: waiting),
+            notificationCoordinator: coordinator,
+            clearConfiguration: {},
+            endActivities: {}
+        )
+        await model.respond(to: waiting.interactions[0], with: .approve)
+        #expect(model.submissionStates["int_1"] == .queued)
+        coordinator.flushResult = ResponseFlushResult(
+            recorded: [PendingResponse(interactionID: "int_1", response: .approve)],
+            terminalOutcomes: [:]
+        )
+
+        await model.refresh()
+
+        #expect(model.submissionStates["int_1"] == .recorded)
     }
 
     @Test func olderRefreshCannotOverwriteNewerTerminalSnapshot() async throws {
