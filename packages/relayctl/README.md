@@ -14,6 +14,8 @@ relayctl ask "Deploy?" --approval --activity codex-task --live-activity --wait -
 
 The configuration is stored at `~/.config/relay/config.json` with mode `0600`. Use `--json` for stable machine-readable output. Exit code `4` means timeout/expiry/cancellation and `5` means deny/no.
 
+In JSON mode, failures write one JSON object to stderr and exit with code `1`. The `code` field is `usage` for invalid commands, `local` for configuration or other local failures, or a transport diagnostic code. Wait durations must round to at least one second. Invalid wait durations are rejected before an ask is sent.
+
 Binary asks can target a specific concurrent task activity with `--activity <id|key>`. An untargeted ask uses the only active task, or starts a temporary activity when several tasks are active. Use `--live-activity` to require ActivityKit presentation or `--no-live-activity` to keep the ask in notifications and the inbox. Text asks do not support Live Activity presentation.
 
 Transient DNS, connection, timeout, rate-limit, and server failures receive bounded retries. `relayctl doctor` checks health and authenticated access. With `--json`, transport failures include stable `code`, `retryable`, and `status` fields. The top-level `accepted` field reports the actionable alert; `activityDelivery` independently reports ActivityKit APNs acceptance and is not proof that the phone displayed it.

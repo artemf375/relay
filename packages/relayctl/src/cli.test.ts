@@ -21,6 +21,12 @@ function runtime(responses: Array<{ status?: number; body: unknown }> = []) {
 }
 
 describe("relayctl notify", () => {
+  test("preserves equals signs in inline option values", async () => {
+    const context = runtime([{ body: { accepted: true } }]);
+    await execute(["notify", "Finished", "--url=https://example.com/build?id=42&view=full"], context.runtime);
+    expect(JSON.parse(String(context.requests[0]?.init.body)).url).toBe("https://example.com/build?id=42&view=full");
+  });
+
   test("sends stable JSON with an idempotency key", async () => {
     const context = runtime([{ body: { accepted: true, notification: { id: "ntf_1" } } }]);
     const result = await execute(["notify", "Finished", "--title", "Codex", "--json"], context.runtime);
@@ -96,6 +102,13 @@ describe("relayctl doctor", () => {
 });
 
 describe("relayctl ask", () => {
+  test.each(["tomorrow", "0s", "0.1s", "9".repeat(400)])("rejects invalid wait duration %s before sending a question", async (timeout) => {
+    const context = runtime([{ body: { accepted: true, interaction: { id: "int_1", status: "pending" } } }]);
+    await expect(execute(["ask", "Deploy?", "--approval", "--wait", "--timeout", timeout], context.runtime))
+      .rejects.toThrow(/duration/i);
+    expect(context.requests).toHaveLength(0);
+  });
+
   test("targets an existing task activity", async () => {
     const context = runtime([{ body: { interaction: { id: "int_1", status: "pending" }, accepted: true } }]);
 

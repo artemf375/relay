@@ -61,8 +61,13 @@ async function main() {
 try {
   process.exitCode = await main();
 } catch (error) {
-  if (argv.includes("--json") && error instanceof RelayHttpError) {
-    console.error(JSON.stringify({ error: error.message, code: error.code, retryable: error.retryable, status: error.status ?? null }));
+  if (argv.includes("--json")) {
+    console.error(JSON.stringify({
+      error: error instanceof Error ? error.message : String(error),
+      code: error instanceof RelayHttpError ? error.code : error instanceof UsageError ? "usage" : "local",
+      retryable: error instanceof RelayHttpError ? error.retryable : false,
+      status: error instanceof RelayHttpError ? error.status ?? null : null,
+    }));
   } else {
     console.error(error instanceof Error ? error.message : String(error));
   }
