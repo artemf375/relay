@@ -62,6 +62,10 @@ Transport failures are retried with bounded delays. `relayctl doctor` checks DNS
 
 See [Pi deployment](docs/operations/pi-deployment.md), [Apple/TestFlight setup](docs/operations/apple-testflight.md), and [recovery](docs/operations/recovery.md).
 
+## Contributing and support
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests, and pull requests. Read the [Code of Conduct](CODE_OF_CONDUCT.md) before taking part. Use [SUPPORT.md](SUPPORT.md) for help and [SECURITY.md](SECURITY.md) to report vulnerabilities privately.
+
 ## License
 
 [MIT](LICENSE).

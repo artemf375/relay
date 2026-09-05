@@ -1,0 +1,26 @@
+name: Help request
+description: Ask a setup or usage question after checking the guides.
+body:
+  - type: markdown
+    attributes:
+      value: "Read [SUPPORT.md](https://github.com/artemf375/relay/blob/main/SUPPORT.md) first. This form is public; do not paste credentials or private data."
+  - type: textarea
+    id: question
+    attributes:
+      label: What are you trying to do?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Version and deployment
+      description: Include the Relay commit or version and relevant platform versions.
+    validations:
+      required: true
+  - type: textarea
+    id: attempts
+    attributes:
+      label: What have you tried?
+      description: Link the guide you followed and include only redacted error output.
+    validations:
+      required: true

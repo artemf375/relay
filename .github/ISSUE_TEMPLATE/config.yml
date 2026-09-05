@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/artemf375/relay/security/advisories/new
+    about: Do not include vulnerability details or credentials in a public issue.
+  - name: Setup and support guide
+    url: https://github.com/artemf375/relay/blob/main/SUPPORT.md
+    about: Read the setup guides and check what to include in a help request.

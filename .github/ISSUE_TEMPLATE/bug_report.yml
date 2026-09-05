@@ -1,0 +1,31 @@
+name: Bug report
+description: Report a reproducible problem in Relay.
+body:
+  - type: markdown
+    attributes:
+      value: "Issues are public. Remove credentials and private data. Report vulnerabilities through [private reporting](https://github.com/artemf375/relay/security/advisories/new)."
+  - type: textarea
+    id: environment
+    attributes:
+      label: Version and environment
+      description: Relay commit or version, deployment type, and relevant Node.js, iOS, or Xcode versions.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Give the smallest example that shows the problem. Use made-up data.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual result
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Redacted logs or screenshots
+      description: Check all output for credentials, device identifiers, and private notification content before attaching it.
