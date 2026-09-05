@@ -4,12 +4,15 @@ Relay is a self-hosted, single-user notification bridge. A `relayctl` command on
 
 ## Deploy the server
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fartemf375%2Frelay)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fartemf375%2Frelay&env=RELAY_DATABASE_URL%2CRELAY_DATABASE_AUTH_TOKEN%2CRELAY_TOKEN_HASH_KEY%2CRELAY_ENCRYPTION_KEY%2CRELAY_CLI_TOKEN%2CAPNS_KEY_ID%2CAPPLE_TEAM_ID%2CAPNS_PRIVATE_KEY%2CAPNS_BUNDLE_ID%2CCRON_SECRET&envDescription=Relay+needs+your+database+credentials+and+Apple+push+settings.+Requires+Vercel+Pro+for+minute+cron+jobs.&envLink=https%3A%2F%2Fgithub.com%2Fartemf375%2Frelay%2Fblob%2Fmain%2Fdocs%2Foperations%2Fcloud-deployment.md)
+**Local hosting:** use the [Docker setup](docs/operations/local-hosting.md). The image contains the server and SQLite. Relay generates its own keys on first start and keeps them in a persistent volume. Supply your Apple push credentials and an HTTPS address.
 
-The buttons open the provider setup flow. Supply your own Apple push credentials, app bundle ID, and Turso/libSQL database. Cloudflare uses **Workers with Containers** and needs a paid Workers plan. Vercel uses **Node.js Functions** and needs Pro for the one-minute maintenance schedule. Neither option stores data on temporary disks.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fartemf375%2Frelay&products=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22storage%22%2C%22productSlug%22%3A%22database%22%2C%22integrationSlug%22%3A%22tursocloud%22%7D%5D&env=RELAY_TOKEN_HASH_KEY%2CRELAY_ENCRYPTION_KEY%2CRELAY_CLI_TOKEN%2CAPNS_KEY_ID%2CAPPLE_TEAM_ID%2CAPNS_PRIVATE_KEY%2CAPNS_BUNDLE_ID%2CCRON_SECRET&envDescription=Turso+creates+the+database.+Supply+Relay+secrets+and+Apple+push+settings.+Vercel+Pro+is+required+for+minute+cron+jobs.&envLink=https%3A%2F%2Fgithub.com%2Fartemf375%2Frelay%2Fblob%2Fmain%2Fdocs%2Foperations%2Fcloud-deployment.md)
 
-Read the [cloud setup guide](docs/operations/cloud-deployment.md) before deployment. The server does not build or sign the iPhone app. See the [publication audit](docs/operations/open-source-audit.md) for the source and credential checks.
+**Vercel:** the deploy flow creates a Turso database and connects it. Supply the Relay secrets and Apple push credentials. Vercel Pro is required for the one-minute maintenance schedule. See the [cloud setup guide](docs/operations/cloud-deployment.md).
+
+**Advanced Cloudflare setup:** [deploy Workers with Containers](https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fartemf375%2Frelay). This still needs a separate Turso database and a paid Workers plan.
+
+The server does not build or sign the iPhone app. See [Apple setup](docs/operations/apple-testflight.md) and the [publication audit](docs/operations/open-source-audit.md).
 
 ## Workspace
 

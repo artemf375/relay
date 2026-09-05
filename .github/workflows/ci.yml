@@ -33,6 +33,7 @@ jobs:
       - run: sh deploy/test-compose-health.sh
       - uses: docker/setup-qemu-action@v3
       - run: docker buildx build --platform linux/arm64 --load -t relay:ci .
+      - run: sh deploy/test-local-startup.sh relay:ci
       - run: sh deploy/test-backup-restore.sh relay:ci
 
   ios:

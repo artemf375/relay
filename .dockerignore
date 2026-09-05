@@ -22,3 +22,5 @@ deploy/secrets
 **/*.p12
 **/*.mobileprovision
 **/*.xcconfig
+**/relay-secrets.json
+**/*.sqlite*

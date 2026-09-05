@@ -6,6 +6,8 @@ import { createRuntime } from "./runtime.js";
 let runtime: ReturnType<typeof createRuntime> | undefined;
 const getRuntime = () => runtime ??= createRuntime({
   ...process.env,
+  RELAY_DATABASE_URL: process.env.TURSO_DATABASE_URL,
+  RELAY_DATABASE_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN,
   RELAY_REQUIRE_REMOTE_DATABASE: "true",
 }, true).catch((error) => {
   runtime = undefined;

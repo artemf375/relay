@@ -1,7 +1,8 @@
 import { serve } from "@hono/node-server";
 import { createRuntime } from "./runtime.js";
+import { localEnvironment } from "./local.js";
 
-const { app, store, environment, reconcileCheckpoints } = await createRuntime(process.env);
+const { app, store, environment, reconcileCheckpoints } = await createRuntime(localEnvironment(process.env));
 const maintenance = () => reconcileCheckpoints().catch(() => {
   console.error(JSON.stringify({ level: "error", message: "Checkpoint maintenance failed" }));
 });

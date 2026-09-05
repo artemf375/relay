@@ -12,7 +12,7 @@ test("maintenance rejects missing or wrong credentials before opening storage", 
 });
 
 test("Vercel fails closed with temporary storage and does not expose configuration", async () => {
-  vi.stubEnv("RELAY_DATABASE_URL", "/tmp/relay.sqlite");
+  vi.stubEnv("TURSO_DATABASE_URL", "/tmp/relay.sqlite");
   const response = await app.request("/readyz");
   expect(response.status).toBe(503);
   expect(await response.json()).toEqual({ error: "Server configuration or storage unavailable" });

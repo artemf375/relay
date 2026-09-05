@@ -4,7 +4,7 @@ Relay runs one private phone bridge per deployment. Each deployment needs its ow
 
 ## Before you click Deploy
 
-1. Create an empty [Turso database](https://docs.turso.tech/introduction) and a database auth token. Use its `libsql://` URL. Relay creates its tables on first start. A compatible hosted libSQL service with interactive transactions also works.
+1. For Vercel, the Deploy button includes the [Turso Cloud integration](https://vercel.com/marketplace/tursocloud). It creates a database and sets its connection variables. For Cloudflare, create a [Turso database](https://docs.turso.tech/introduction) and auth token yourself. Relay creates its tables on first start.
 2. Create your own Apple App ID with Push Notifications and an APNs signing key. Build the iOS app with your own team and bundle ID. See [Apple setup](apple-testflight.md).
 3. Generate the Relay secrets below. Keep each value in your password manager. Enter them as provider secrets, never as source code or build arguments.
 4. Select a button in the root README. Import the **whole repository**, with its root directory unchanged.
@@ -15,8 +15,8 @@ The buttons start a guided setup. They cannot create your Apple developer accoun
 
 | Variable | Value |
 | --- | --- |
-| `RELAY_DATABASE_URL` | Your remote `libsql://` or `https://` database URL. Local files are rejected in cloud deployments. |
-| `RELAY_DATABASE_AUTH_TOKEN` | A token that can read and write that database. |
+| `RELAY_DATABASE_URL` | Cloudflare only: your remote `libsql://` or `https://` database URL. |
+| `RELAY_DATABASE_AUTH_TOKEN` | Cloudflare only: a token that can read and write that database. |
 | `RELAY_TOKEN_HASH_KEY` | A random 32-byte key, encoded as base64. |
 | `RELAY_ENCRYPTION_KEY` | A different random 32-byte key, encoded as base64. |
 | `RELAY_CLI_TOKEN` | A random CLI bootstrap credential beginning with `relay_cli_`. |
@@ -64,6 +64,8 @@ For a CLI deployment, set the same secrets with `pnpm exec wrangler secret put N
 See [Cloudflare deploy buttons](https://developers.cloudflare.com/workers/platform/deploy-buttons/), [Containers setup](https://developers.cloudflare.com/containers/get-started/), and [Containers pricing](https://developers.cloudflare.com/containers/pricing/).
 
 ## Vercel
+
+Keep the Turso database selected in the deploy flow. Vercel supplies `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`; do not copy database credentials into Relay variables. Existing Vercel projects must connect Turso through the Storage tab before deploying this version. The Relay and Apple secrets in the table still need to be supplied. This is guided deployment, not zero-configuration deployment.
 
 The template uses Node.js Functions, with a 60-second invocation limit for long polling and push delivery. Vercel Pro is required for the included one-minute cron. Hobby cannot run this schedule. Keep the default root directory and `vercel.json` settings.
 
