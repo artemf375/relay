@@ -33,15 +33,14 @@ actor RelayAPI: RelayAPIClient {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(EnrollmentRequest(code: code, deviceName: deviceName))
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request, delegate: RelayRedirectPolicy())
         try validate(response: response, data: data)
         return try JSONDecoder().decode(EnrollmentResponse.self, from: data)
     }
 
     func register(_ update: DeviceTokenUpdate) async throws {
         let request = try builder.request(path: "/v1/device/push-tokens", method: "PUT", body: update)
-        let (data, response) = try await session.data(for: request)
-        try Self.validate(response: response, data: data)
+        _ = try await send(request)
     }
 
     func registerActivityToken(_ update: ActivityPushTokenUpdate) async throws {
@@ -50,40 +49,34 @@ actor RelayAPI: RelayAPIClient {
             method: "PUT",
             body: update
         )
-        let (data, response) = try await session.data(for: request)
-        try Self.validate(response: response, data: data)
+        _ = try await send(request)
     }
 
     func removeActivityToken(activityID: String) async throws {
         let request = try builder.request(path: "/v1/device/activities/\(activityID)/push-token", method: "DELETE")
-        let (data, response) = try await session.data(for: request)
-        try Self.validate(response: response, data: data)
+        _ = try await send(request)
     }
 
     func reportActivityDismissed(activityID: String) async throws {
         let request = try builder.request(path: "/v1/device/activities/\(activityID)/dismissed", method: "POST")
-        let (data, response) = try await session.data(for: request)
-        try Self.validate(response: response, data: data)
+        _ = try await send(request)
     }
 
     func inbox() async throws -> InboxResponse {
         let request = try builder.request(path: "/v1/inbox")
-        let (data, response) = try await session.data(for: request)
-        try Self.validate(response: response, data: data)
+        let data = try await send(request)
         return try decoder.decode(InboxResponse.self, from: data)
     }
 
     func activities() async throws -> [RelayActivity] {
         let request = try builder.request(path: "/v1/device/activities")
-        let (data, response) = try await session.data(for: request)
-        try Self.validate(response: response, data: data)
+        let data = try await send(request)
         return try decoder.decode(ActivityListResponse.self, from: data).activities
     }
 
     func endActivity(id: String) async throws -> RelayActivity {
         let request = try builder.request(path: "/v1/device/activities/\(id)/end", method: "POST")
-        let (data, response) = try await session.data(for: request)
-        try Self.validate(response: response, data: data)
+        let data = try await send(request)
         return try decoder.decode(ActivityEnvelope.self, from: data).activity
     }
 
@@ -96,8 +89,7 @@ actor RelayAPI: RelayAPIClient {
             method: "POST",
             body: response
         )
-        let (data, urlResponse) = try await session.data(for: request)
-        try Self.validate(response: urlResponse, data: data)
+        let data = try await send(request)
         return try Self.decodeWinningResponse(from: data)
     }
 
@@ -111,15 +103,19 @@ actor RelayAPI: RelayAPIClient {
         var request = try builder.request(path: "/v1/interactions/\(pending.interactionID)/respond", method: "POST")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: object)
-        let (data, urlResponse) = try await session.data(for: request)
-        try Self.validate(response: urlResponse, data: data)
+        let data = try await send(request)
         return try Self.decodeWinningResponse(from: data)
     }
 
     func revokeDevice() async throws {
         let request = try builder.request(path: "/v1/device", method: "DELETE")
-        let (data, response) = try await session.data(for: request)
+        _ = try await send(request)
+    }
+
+    private func send(_ request: URLRequest) async throws -> Data {
+        let (data, response) = try await session.data(for: request, delegate: RelayRedirectPolicy())
         try Self.validate(response: response, data: data)
+        return data
     }
 
     private static func validate(response: URLResponse, data: Data) throws {

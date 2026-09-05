@@ -37,7 +37,7 @@ struct RelayLiveActivityResponseIntent: LiveActivityIntent {
                 deviceCredential: configuration.credential
             )
             let client = LiveActivityResponseClient(builder: builder) { request in
-                try await URLSession.shared.data(for: request)
+                try await URLSession.shared.data(for: request, delegate: RelayRedirectPolicy())
             }
             let result = try await client.submit(
                 interactionID: interactionID,

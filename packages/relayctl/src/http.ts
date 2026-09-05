@@ -50,8 +50,7 @@ export function createRelayRequester(baseURL: string, options: RequesterOptions 
   return async (path: string, init: RequestInit): Promise<unknown> => {
     const longPollSeconds = Number(new URL(path, "https://relay.invalid").searchParams.get("timeout") ?? 0);
     const timeoutMilliseconds = Math.max(15_000, (longPollSeconds + 5) * 1_000);
-    let lastError: RelayHttpError | undefined;
-    for (let attempt = 0; attempt < 3; attempt += 1) {
+    for (let attempt = 0; ; attempt += 1) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), timeoutMilliseconds);
       try {
@@ -61,23 +60,19 @@ export function createRelayRequester(baseURL: string, options: RequesterOptions 
         const message = body && typeof body === "object" && "error" in body
           ? String((body as { error: unknown }).error)
           : `HTTP ${response.status}`;
-        const error = new RelayHttpError(
+        throw new RelayHttpError(
           response.status === 401 ? "Relay authentication failed. Reconfigure or rotate the CLI credential." : message,
           response.status === 401 ? "auth" : "http",
           retryableStatuses.has(response.status),
           response.status,
         );
-        if (!error.retryable || attempt === 2) throw error;
-        lastError = error;
       } catch (error) {
         const classified = classify(error);
         if (!classified.retryable || attempt === 2) throw classified;
-        lastError = classified;
       } finally {
         clearTimeout(timeout);
       }
       await sleep(attempt === 0 ? 250 : 750);
     }
-    throw lastError ?? new RelayHttpError("Relay request failed.", "connect", true);
   };
 }

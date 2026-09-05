@@ -1,8 +1,24 @@
 import { chmod, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { expect, test } from "vitest";
+
+test("JSON mode keeps local usage and configuration failures machine-readable", () => {
+  const launcherPath = resolve(import.meta.dirname, "../bin/relayctl.mjs");
+  for (const [args, code] of [
+    [["configure", "--json"], "usage"],
+    [["doctor", "--json"], "local"],
+  ] as const) {
+    const result = spawnSync(process.execPath, [launcherPath, ...args], {
+      env: { ...process.env, RELAY_CONFIG: "/dev/null/missing-relay-config" },
+      encoding: "utf8",
+    });
+    expect(result.status).toBe(1);
+    expect(result.stdout).toBe("");
+    expect(JSON.parse(result.stderr)).toMatchObject({ error: expect.any(String), code, retryable: false, status: null });
+  }
+});
 
 test("the installed launcher retries a transient DNS failure", async () => {
   const directory = await mkdtemp(join(tmpdir(), "relayctl-bin-"));

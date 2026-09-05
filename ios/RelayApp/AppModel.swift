@@ -166,7 +166,7 @@ final class AppModel: ObservableObject {
         unpairErrorMessage = nil
     }
 
-    func refresh() async {
+    private func fetchInbox() async {
         guard let api else { return }
         let session = sessionID
         refreshSequence += 1
@@ -208,6 +208,11 @@ final class AppModel: ObservableObject {
         if let activityAPI {
             await activityTokens.reconcile(api: activityAPI, environment: environment)
         }
+        await refresh()
+    }
+
+    func refresh() async {
+        guard api != nil else { return }
         let session = sessionID
         do {
             let result = try await notificationCoordinator.flush()
@@ -226,7 +231,7 @@ final class AppModel: ObservableObject {
             }
             inboxErrorMessage = error.localizedDescription
         }
-        await refresh()
+        await fetchInbox()
     }
 
     func respond(to interaction: InboxInteraction, with response: InteractionResponse) async {
@@ -248,7 +253,7 @@ final class AppModel: ObservableObject {
         }
         responseOperations.removeValue(forKey: interaction.id)
         submissionStates = submissionTracker.states
-        await refresh()
+        await fetchInbox()
     }
 
     func unpair() async {
@@ -315,7 +320,7 @@ final class AppModel: ObservableObject {
         Task {
             _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
             await refreshNotificationAuthorization()
-            await refresh()
+            await fetchInbox()
         }
     }
 

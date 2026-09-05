@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { randomUUID } from "node:crypto";
 import { hostname } from "node:os";
 import { execute, help, UsageError } from "../dist/cli.js";
 import { defaultConfigPath, loadConfig, saveConfig } from "../dist/config.js";
@@ -45,7 +44,6 @@ async function main() {
   const config = await loadConfig();
   const result = await execute(argv, {
     config,
-    randomId: randomUUID,
     request: createRelayRequester(config.url),
   });
   if (argv[0] === "auth" && argv[1] === "rotate") {
@@ -56,18 +54,22 @@ async function main() {
     else console.log("Relay CLI credential rotated and saved.");
     return result.exitCode;
   }
-  if (result.json) console.log(JSON.stringify(result.body));
-  else console.log(JSON.stringify(result.body, null, 2));
+  console.log(JSON.stringify(result.body, null, result.json ? undefined : 2));
   return result.exitCode;
 }
 
 try {
   process.exitCode = await main();
 } catch (error) {
-  if (argv.includes("--json") && error instanceof RelayHttpError) {
-    console.error(JSON.stringify({ error: error.message, code: error.code, retryable: error.retryable, status: error.status ?? null }));
+  if (argv.includes("--json")) {
+    console.error(JSON.stringify({
+      error: error instanceof Error ? error.message : String(error),
+      code: error instanceof RelayHttpError ? error.code : error instanceof UsageError ? "usage" : "local",
+      retryable: error instanceof RelayHttpError ? error.retryable : false,
+      status: error instanceof RelayHttpError ? error.status ?? null : null,
+    }));
   } else {
     console.error(error instanceof Error ? error.message : String(error));
   }
-  process.exitCode = error instanceof UsageError ? 1 : 1;
+  process.exitCode = 1;
 }

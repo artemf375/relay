@@ -62,7 +62,9 @@ export function parseArguments(argv: string[]): ParsedArguments {
       positionals.push(value);
       continue;
     }
-    const [name = "", inline] = value.slice(2).split("=", 2);
+    const separator = value.indexOf("=");
+    const name = value.slice(2, separator < 0 ? undefined : separator);
+    const inline = separator < 0 ? undefined : value.slice(separator + 1);
     if (valueFlags.has(name)) {
       const optionValue = inline ?? argv[++index];
       if (!optionValue || optionValue.startsWith("--")) throw new UsageError(`--${name} requires a value`);
@@ -83,7 +85,9 @@ export function parseDuration(value: string): number {
   if (!match) throw new UsageError(`Invalid duration: ${value}`);
   const amount = Number(match[1]);
   const multiplier = match[2] === "d" ? 86_400 : match[2] === "h" ? 3_600 : match[2] === "m" ? 60 : 1;
-  return Math.round(amount * multiplier);
+  const seconds = Math.round(amount * multiplier);
+  if (!Number.isSafeInteger(seconds) || seconds < 1) throw new UsageError(`Invalid duration: ${value}`);
+  return seconds;
 }
 
 function terminalExit(status: string, timedOut = false): 0 | 4 | 5 {
@@ -225,6 +229,7 @@ export async function execute(argv: string[], runtime: RelayctlRuntime): Promise
           ? "disabled"
           : "auto";
     const expiresInSeconds = parseDuration(String(options["expires-in"] ?? "15m"));
+    const timeout = options.wait ? parseDuration(String(options.timeout ?? "10m")) : undefined;
     const created = requireAccepted((await request(
       runtime,
       "/v1/interactions",
@@ -239,8 +244,7 @@ export async function execute(argv: string[], runtime: RelayctlRuntime): Promise
       },
       mutationKey(runtime, options),
     )) as { interaction: { id: string; status: string }; accepted: boolean });
-    if (!options.wait) return { body: created, exitCode: 0, json };
-    const timeout = parseDuration(String(options.timeout ?? "10m"));
+    if (timeout === undefined) return { body: created, exitCode: 0, json };
     const waited = await waitForInteraction(runtime, created.interaction.id, timeout);
     return {
       body: { ...created, interaction: waited.interaction, timedOut: waited.timedOut },
@@ -284,7 +288,7 @@ export async function execute(argv: string[], runtime: RelayctlRuntime): Promise
         title: String(options.title),
         status: String(options.status),
         ...(options.detail ? { detail: String(options.detail) } : {}),
-        ...(numericOption(options, "progress") !== undefined ? { progress: numericOption(options, "progress") } : {}),
+        progress: numericOption(options, "progress"),
         ...(options.symbol ? { symbol: String(options.symbol) } : {}),
         ...(options["accent-color"] ? { accentColor: String(options["accent-color"]) } : {}),
         ...(options.key ? { key: String(options.key) } : {}),
@@ -300,10 +304,10 @@ export async function execute(argv: string[], runtime: RelayctlRuntime): Promise
     const payload = {
       ...(options.status ? { status: String(options.status) } : {}),
       ...(options.detail ? { detail: String(options.detail) } : {}),
-      ...(numericOption(options, "progress") !== undefined ? { progress: numericOption(options, "progress") } : {}),
+      progress: numericOption(options, "progress"),
       ...(options.symbol ? { symbol: String(options.symbol) } : {}),
       ...(options["accent-color"] ? { accentColor: String(options["accent-color"]) } : {}),
-      ...(numericOption(options, "sequence") !== undefined ? { sequence: numericOption(options, "sequence") } : {}),
+      sequence: numericOption(options, "sequence"),
     };
     const path = `/v1/activities/${encodeURIComponent(identifier)}${action === "end" ? "/end" : ""}`;
     const body = requireAccepted(await request(

@@ -1,6 +1,6 @@
 ---
 name: using-relay
-description: Use when a user is away and a local Relay deployment is available for completion notices, explicit decisions, short replies, or ongoing task progress.
+description: Use when a user is away and Relay is available for notifications, approval and decision buttons in Live Activities, bounded choices, short replies, or task progress.
 ---
 
 # Using Relay
@@ -8,6 +8,16 @@ description: Use when a user is away and a local Relay deployment is available f
 ## Purpose
 
 Relay is a narrow phone bridge. Use it to notify the user, request one bounded response, or show meaningful progress. It does not grant authority and the phone cannot initiate instructions.
+
+## Approvals and decisions
+
+Use Relay when you need the user's approval or a choice to continue. Actionable notifications and Live Activities support buttons, so the user can answer from the phone. Do not ask again for an action already authorized.
+
+- Use `ask --approval` for an exact action that needs permission. The buttons are Approve and Deny.
+- Use `ask --yes-no` for a binary decision. The buttons are Yes and No; state clearly what each answer means.
+- For more than two choices, use `ask --text`, list short option labels in the prompt, and ask the user to reply with one label. Relay does not support custom choice buttons. Validate the reply against the offered choices before you act.
+- Use `--activity <id|key> --live-activity` to put approval or Yes/No buttons on the task's Live Activity. Use `--no-live-activity` for an actionable notification without a Live Activity.
+- Wait for a confirmed response before the dependent action. Continue independent work while the question is pending; without `--wait`, save the returned interaction ID and use `interaction wait` when needed. Sending the question is not approval.
 
 ## Safety
 
@@ -25,6 +35,8 @@ Use JSON output whenever the result drives agent behavior:
 relayctl notify "Verification finished; review is ready." --title "Codex" --json
 relayctl ask "Publish the committed branch to the configured remote?" --approval --wait --timeout 10m --json
 relayctl ask "Deploy the verified build?" --approval --activity relay-task-7f3a --live-activity --wait --timeout 10m --json
+relayctl ask "Include screenshots in the report? Yes includes them; No uses text only." --yes-no --activity relay-task-7f3a --live-activity --wait --timeout 10m --json
+relayctl ask "Choose the report format: brief, detailed, or checklist. Reply with one label." --text --wait --timeout 10m --json
 relayctl ask "Which short release label should I use?" --text --wait --timeout 10m --json
 relayctl interaction wait int_123 --timeout 10m --json
 relayctl doctor --json
