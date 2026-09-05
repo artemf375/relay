@@ -1,0 +1,11 @@
+# The Cloudflare deploy button asks for these values. Never commit real values.
+# See docs/operations/cloud-deployment.md.
+RELAY_DATABASE_URL=
+RELAY_DATABASE_AUTH_TOKEN=
+RELAY_TOKEN_HASH_KEY=
+RELAY_ENCRYPTION_KEY=
+RELAY_CLI_TOKEN=
+APNS_KEY_ID=
+APPLE_TEAM_ID=
+APNS_PRIVATE_KEY=
+APNS_BUNDLE_ID=

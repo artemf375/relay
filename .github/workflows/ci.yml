@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  release-lineage:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: git fetch origin main
+      - run: sh deploy/verify-release-lineage.sh "$GITHUB_SHA" origin/main
+
+  node:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.1.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: sh deploy/test-compose-health.sh
+      - uses: docker/setup-qemu-action@v3
+      - run: docker buildx build --platform linux/arm64 --load -t relay:ci .
+      - run: sh deploy/test-backup-restore.sh relay:ci
+
+  ios:
+    runs-on: macos-26
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.4.1.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show Xcode version
+        run: xcodebuild -version
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Test RelayCore
+        run: cd ios && swift test --disable-sandbox
+      - name: Generate project and test Relay app
+        run: |
+          xcodegen generate --spec ios/project.yml
+          xcodebuild test -project ios/Relay.xcodeproj -scheme Relay -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.4.1' -only-testing:RelayAppTests CODE_SIGNING_ALLOWED=NO
+      - name: Build simulator app
+        run: |
+          xcodebuild -project ios/Relay.xcodeproj -scheme Relay -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build

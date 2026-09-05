@@ -1,0 +1,29 @@
+{
+  "name": "@relay/server",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "pretest": "pnpm --filter @relay/contracts build",
+    "test": "vitest run src",
+    "test:coverage": "vitest run src --coverage"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.6",
+    "@libsql/client": "^0.18.0",
+    "@relay/contracts": "workspace:*",
+    "better-sqlite3": "^12.4.1",
+    "drizzle-orm": "^0.44.7",
+    "hono": "^4.10.6",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@vitest/coverage-v8": "^4.0.8",
+    "tsx": "^4.20.6"
+  }
+}

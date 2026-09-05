@@ -1,0 +1,71 @@
+services:
+  relay:
+    build: .
+    environment:
+      NODE_ENV: production
+      PORT: "8787"
+      RELAY_DATABASE_URL: /data/relay.sqlite
+      RELAY_TOKEN_HASH_KEY: ${RELAY_TOKEN_HASH_KEY:?set RELAY_TOKEN_HASH_KEY}
+      RELAY_ENCRYPTION_KEY: ${RELAY_ENCRYPTION_KEY:?set RELAY_ENCRYPTION_KEY}
+      RELAY_CLI_TOKEN: ${RELAY_CLI_TOKEN:?set RELAY_CLI_TOKEN}
+      RELAY_ALLOWED_URL_HOSTS: ${RELAY_ALLOWED_URL_HOSTS:-}
+      APNS_KEY_ID: ${APNS_KEY_ID:?set APNS_KEY_ID}
+      APPLE_TEAM_ID: ${APPLE_TEAM_ID:?set APPLE_TEAM_ID}
+      APNS_PRIVATE_KEY_FILE: /run/secrets/apns_key
+      APNS_BUNDLE_ID: ${APNS_BUNDLE_ID:?set APNS_BUNDLE_ID}
+      APNS_ENVIRONMENT: production
+    secrets:
+      - apns_key
+    volumes:
+      - relay-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  tunnel:
+    image: cloudflare/cloudflared:2026.7.3
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      relay:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+
+  backup:
+    build: .
+    entrypoint: ["/app/scripts/backup-loop.sh"]
+    healthcheck:
+      disable: true
+    environment:
+      RELAY_DATABASE_URL: /data/relay.sqlite
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:?set RESTIC_REPOSITORY}
+      RESTIC_PASSWORD_FILE: /run/secrets/restic_password
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+    secrets:
+      - restic_password
+    volumes:
+      - relay-data:/data
+      - relay-backup-work:/backup
+      - ${NAS_SSH_KEY_PATH:?set NAS_SSH_KEY_PATH}:/home/node/.ssh/id_ed25519:ro
+      - ${NAS_KNOWN_HOSTS_PATH:?set NAS_KNOWN_HOSTS_PATH}:/home/node/.ssh/known_hosts:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+secrets:
+  apns_key:
+    file: ./deploy/secrets/AuthKey.p8
+  restic_password:
+    file: ./deploy/secrets/restic-password
+
+volumes:
+  relay-data:
+  relay-backup-work:

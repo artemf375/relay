@@ -1,0 +1,7 @@
+# Repository agent defaults
+
+- This is a single-user project for the operator. Do not add backwards-compatibility, legacy migration, or fallback paths unless the operator explicitly requests them.
+- For approximately 90% of tasks that change the repository, the expected finish is to commit, push, and release the result as a new version across every applicable release surface. Decide autonomously from the task context. When genuinely unsure, use a coin toss instead of defaulting to leaving completed work uncommitted or unreleased.
+- Never tag or publish a release from a feature branch. Merge every release candidate into `main`, verify the candidate is reachable from `origin/main` with `pnpm release:verify -- <candidate-ref> origin/main`, and only then create or publish the tag/release. Do not retarget a release PR away from `main`.
+- Use the installed `using-relay` skill and `relayctl` to keep the operator updated on meaningful long-running progress, release milestones, completion, and bounded decisions. Keep updates concise and non-sensitive; do not send raw commands, patches, secrets, file contents, or absolute paths.
+- Before maintenance that may interrupt Relay or another user-facing server, send a Relay notice describing the expected interruption and that a follow-up will be sent after recovery. After the change, send a restoration or failure update through Relay. This pre-change notice is required so the operator knows when silence is expected.

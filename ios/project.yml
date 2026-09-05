@@ -1,0 +1,102 @@
+name: Relay
+options:
+  minimumXcodeGenVersion: 2.42.0
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+    IPHONEOS_DEPLOYMENT_TARGET: 26.0
+    DEVELOPMENT_TEAM: ""
+    RELAY_BUNDLE_ID: com.example.relay
+    MARKETING_VERSION: 1.0
+    CURRENT_PROJECT_VERSION: 7
+  configs:
+    Debug:
+      APS_ENVIRONMENT: development
+    Release:
+      APS_ENVIRONMENT: production
+packages:
+  RelayCore:
+    path: .
+targets:
+  Relay:
+    type: application
+    platform: iOS
+    sources:
+      - path: RelayApp
+        excludes:
+          - IconArtwork
+      - RelayShared
+    info:
+      path: RelayApp/Info.plist
+      properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        RelayAppGroup: group.$(RELAY_BUNDLE_ID)
+        RelayKeychainService: $(RELAY_BUNDLE_ID)
+        RelayKeychainAccessGroup: $(AppIdentifierPrefix)$(RELAY_BUNDLE_ID).shared
+        NSSupportsLiveActivities: true
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen: {}
+    entitlements:
+      path: RelayApp/Relay.entitlements
+      properties:
+        aps-environment: $(APS_ENVIRONMENT)
+        com.apple.security.application-groups:
+          - group.$(RELAY_BUNDLE_ID)
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)$(RELAY_BUNDLE_ID).shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(RELAY_BUNDLE_ID)
+        PRODUCT_NAME: Relay
+        CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1"
+    dependencies:
+      - package: RelayCore
+      - target: RelayWidget
+        embed: true
+  RelayWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - RelayWidget
+      - RelayShared
+    info:
+      path: RelayWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Relay
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        RelayAppGroup: group.$(RELAY_BUNDLE_ID)
+        RelayKeychainService: $(RELAY_BUNDLE_ID)
+        RelayKeychainAccessGroup: $(AppIdentifierPrefix)$(RELAY_BUNDLE_ID).shared
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: RelayWidget/RelayWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.$(RELAY_BUNDLE_ID)
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)$(RELAY_BUNDLE_ID).shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(RELAY_BUNDLE_ID).widget
+        PRODUCT_NAME: RelayWidget
+        SKIP_INSTALL: YES
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+    dependencies:
+      - package: RelayCore
+  RelayAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - RelayAppTests
+    dependencies:
+      - target: Relay
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(RELAY_BUNDLE_ID).tests
+        CODE_SIGN_STYLE: Automatic

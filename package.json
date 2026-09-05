@@ -1,0 +1,64 @@
+{
+  "name": "relay",
+  "private": true,
+  "version": "0.3.0",
+  "packageManager": "pnpm@11.1.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck && tsc -p deploy/tsconfig.json && tsc -p api/tsconfig.json",
+    "test": "pnpm -r test && sh deploy/test-release-lineage.sh",
+    "release:verify": "sh deploy/verify-release-lineage.sh",
+    "test:coverage": "pnpm -r test:coverage",
+    "deploy:check": "wrangler deploy --dry-run",
+    "deploy:cloudflare": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/containers": "^0.3.7",
+    "@cloudflare/workers-types": "^5.20260904.1",
+    "@types/node": "^24.10.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.8",
+    "wrangler": "^4.129.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild",
+      "workerd"
+    ]
+  },
+  "cloudflare": {
+    "bindings": {
+      "RELAY_DATABASE_URL": {
+        "description": "Your Turso/libSQL database URL. A remote database is required; container disks are temporary."
+      },
+      "RELAY_DATABASE_AUTH_TOKEN": {
+        "description": "Read/write auth token for your database."
+      },
+      "RELAY_TOKEN_HASH_KEY": {
+        "description": "Generate a 32-byte base64 key with openssl rand -base64 32."
+      },
+      "RELAY_ENCRYPTION_KEY": {
+        "description": "Generate a separate 32-byte base64 key with openssl rand -base64 32. Keep it stable across deployments."
+      },
+      "RELAY_CLI_TOKEN": {
+        "description": "A random bootstrap token starting with relay_cli_. See the cloud deployment guide."
+      },
+      "APNS_KEY_ID": {
+        "description": "The key ID for your Apple push signing key."
+      },
+      "APPLE_TEAM_ID": {
+        "description": "Your Apple developer team ID."
+      },
+      "APNS_PRIVATE_KEY": {
+        "description": "The contents of your APNs .p8 key. Literal \\n sequences are accepted."
+      },
+      "APNS_BUNDLE_ID": {
+        "description": "The bundle ID of your signed Relay iPhone app."
+      }
+    }
+  }
+}
