@@ -1,0 +1,28 @@
+services:
+  relay:
+    image: ghcr.io/artemf375/relay:latest
+    ports:
+      - "8787:8787"
+    environment:
+      APNS_KEY_ID: ${APNS_KEY_ID:?set APNS_KEY_ID}
+      APPLE_TEAM_ID: ${APPLE_TEAM_ID:?set APPLE_TEAM_ID}
+      APNS_BUNDLE_ID: ${APNS_BUNDLE_ID:?set APNS_BUNDLE_ID}
+      APNS_PRIVATE_KEY_FILE: /run/secrets/apns_key
+      APNS_ENVIRONMENT: ${APNS_ENVIRONMENT:-production}
+    secrets:
+      - apns_key
+    volumes:
+      - relay-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+secrets:
+  apns_key:
+    file: ${APNS_PRIVATE_KEY_FILE:-./AuthKey.p8}
+
+volumes:
+  relay-data:

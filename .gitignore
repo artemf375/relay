@@ -22,6 +22,7 @@ xcuserdata/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+relay-secrets.json
 DerivedData/
 ios/Relay.xcodeproj/
 ios/.build/
