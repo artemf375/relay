@@ -33,7 +33,7 @@ actor RelayAPI: RelayAPIClient {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(EnrollmentRequest(code: code, deviceName: deviceName))
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request, delegate: RelayRedirectPolicy())
         try validate(response: response, data: data)
         return try JSONDecoder().decode(EnrollmentResponse.self, from: data)
     }
@@ -113,7 +113,7 @@ actor RelayAPI: RelayAPIClient {
     }
 
     private func send(_ request: URLRequest) async throws -> Data {
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await session.data(for: request, delegate: RelayRedirectPolicy())
         try Self.validate(response: response, data: data)
         return data
     }
