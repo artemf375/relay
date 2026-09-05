@@ -4,8 +4,8 @@ Relay is a self-hosted, single-user notification bridge. A `relayctl` command on
 
 ## Deploy the server
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fartemf375%2Frelay-public)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fartemf375%2Frelay-public&env=RELAY_DATABASE_URL%2CRELAY_DATABASE_AUTH_TOKEN%2CRELAY_TOKEN_HASH_KEY%2CRELAY_ENCRYPTION_KEY%2CRELAY_CLI_TOKEN%2CAPNS_KEY_ID%2CAPPLE_TEAM_ID%2CAPNS_PRIVATE_KEY%2CAPNS_BUNDLE_ID%2CCRON_SECRET&envDescription=Relay+needs+your+database+credentials+and+Apple+push+settings.+Requires+Vercel+Pro+for+minute+cron+jobs.&envLink=https%3A%2F%2Fgithub.com%2Fartemf375%2Frelay-public%2Fblob%2Fmain%2Fdocs%2Foperations%2Fcloud-deployment.md)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fartemf375%2Frelay)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fartemf375%2Frelay&env=RELAY_DATABASE_URL%2CRELAY_DATABASE_AUTH_TOKEN%2CRELAY_TOKEN_HASH_KEY%2CRELAY_ENCRYPTION_KEY%2CRELAY_CLI_TOKEN%2CAPNS_KEY_ID%2CAPPLE_TEAM_ID%2CAPNS_PRIVATE_KEY%2CAPNS_BUNDLE_ID%2CCRON_SECRET&envDescription=Relay+needs+your+database+credentials+and+Apple+push+settings.+Requires+Vercel+Pro+for+minute+cron+jobs.&envLink=https%3A%2F%2Fgithub.com%2Fartemf375%2Frelay%2Fblob%2Fmain%2Fdocs%2Foperations%2Fcloud-deployment.md)
 
 The buttons open the provider setup flow. Supply your own Apple push credentials, app bundle ID, and Turso/libSQL database. Cloudflare uses **Workers with Containers** and needs a paid Workers plan. Vercel uses **Node.js Functions** and needs Pro for the one-minute maintenance schedule. Neither option stores data on temporary disks.
 
