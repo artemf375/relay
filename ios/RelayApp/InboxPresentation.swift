@@ -26,7 +26,7 @@ struct InteractionSubmissionTracker {
     }
 
     subscript(interactionID: String) -> InteractionSubmissionState {
-        states[interactionID] ?? .idle
+        submissions[interactionID]?.state ?? .idle
     }
 
     mutating func start(_ interactionID: String, response: InteractionResponse) {

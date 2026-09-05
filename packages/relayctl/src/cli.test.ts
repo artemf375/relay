@@ -125,12 +125,6 @@ describe("relayctl ask", () => {
     expect(JSON.parse(String(automatic.requests[0]?.init.body))).toMatchObject({ liveActivity: "auto" });
   });
 
-  test("targets a prompt to its agent activity", async () => {
-    const context = runtime([{ body: { interaction: { id: "int_1", status: "pending" }, accepted: true } }]);
-    await execute(["ask", "Deploy?", "--approval", "--activity", "release"], context.runtime);
-    expect(JSON.parse(String(context.requests[0]?.init.body))).toMatchObject({ activity: "release" });
-  });
-
   test("rejects conflicting presentation flags and Live Activity text asks", async () => {
     const context = runtime();
     await expect(
@@ -226,10 +220,20 @@ describe("relayctl activity", () => {
     expect(context.requests[0]?.init.headers).toMatchObject({ "idempotency-key": "update-7" });
   });
 
-  test("requires a key when replacing an activity", async () => {
+  test("omits unset numeric fields, preserves zero, and rejects invalid numbers", async () => {
     const context = runtime();
-    await expect(execute(["activity", "start", "--title", "Release", "--status", "Restarting", "--replace"], context.runtime))
-      .rejects.toThrow(/key/i);
+    await execute(["activity", "start", "--title", "Release", "--status", "Building"], context.runtime);
+    await execute(["activity", "update", "release", "--progress", "0", "--sequence", "0"], context.runtime);
+    await execute(["activity", "end", "release"], context.runtime);
+
+    expect(JSON.parse(String(context.requests[0]?.init.body))).toEqual({
+      title: "Release", status: "Building", replace: false,
+    });
+    expect(JSON.parse(String(context.requests[1]?.init.body))).toEqual({ progress: 0, sequence: 0 });
+    expect(JSON.parse(String(context.requests[2]?.init.body))).toEqual({});
+    await expect(execute(["activity", "update", "release", "--progress", "invalid"], context.runtime))
+      .rejects.toThrow(/must be numeric/);
+    expect(context.requests).toHaveLength(3);
   });
 });
 

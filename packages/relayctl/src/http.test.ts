@@ -47,4 +47,17 @@ describe("relayctl HTTP transport", () => {
       expect.objectContaining<Partial<RelayHttpError>>({ code: "auth", retryable: false, status: 401 }),
     );
   });
+
+  test("stops after three temporary HTTP failures and returns the last error", async () => {
+    const fetcher = vi.fn().mockImplementation(async () =>
+      new Response(JSON.stringify({ error: "busy" }), { status: 503 }));
+    const sleep = vi.fn(async () => {});
+    const request = createRelayRequester("https://relay.example.com", { fetcher, sleep });
+
+    await expect(request("/healthz", { method: "GET" })).rejects.toMatchObject({
+      message: "busy", code: "http", retryable: true, status: 503,
+    });
+    expect(fetcher).toHaveBeenCalledTimes(3);
+    expect(sleep.mock.calls).toEqual([[250], [750]]);
+  });
 });

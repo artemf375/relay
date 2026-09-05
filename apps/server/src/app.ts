@@ -564,10 +564,9 @@ export function createRelayApp({
     if (!parsed.success) throw new InvalidRequestError("Invalid activity update");
     const identifier = context.req.param("id");
     const replay = await store.findMutation(`activity:update:${identifier}`, key, parsed.data);
-    let target = await store.activityPushTarget(identifier);
     if (!replay) {
       const currentActivity = await store.getActivity(identifier);
-      target = await store.activityPushTarget(currentActivity.id);
+      const target = await store.activityPushTarget(currentActivity.id);
       if (!target) {
         throw new ConflictError("The registered Live Activity token does not match this activity");
       }
@@ -582,7 +581,7 @@ export function createRelayApp({
     if (updateActivity.sequence < activity.sequence) {
       return context.json({ activity, accepted: false, apnsId: updateResult.delivery.apnsId, idempotent: true }, 502);
     }
-    target = await store.activityPushTarget(updateActivity.id);
+    const target = await store.activityPushTarget(updateActivity.id);
     if (!target) {
       throw new ConflictError("The registered Live Activity token does not match this activity");
     }
@@ -608,10 +607,9 @@ export function createRelayApp({
     if (!parsed.success) throw new InvalidRequestError("Invalid activity end request");
     const identifier = context.req.param("id");
     const replay = await store.findMutation(`activity:end:${identifier}`, key, parsed.data);
-    let target = await store.activityPushTarget(identifier);
     if (!replay) {
       const currentActivity = await store.getActivity(identifier);
-      target = await store.activityPushTarget(currentActivity.id);
+      const target = await store.activityPushTarget(currentActivity.id);
       if (!target) {
         throw new ConflictError("The registered Live Activity token does not match this activity");
       }
@@ -623,7 +621,7 @@ export function createRelayApp({
     }
     const endPayload = deliveryActivity(endResult.delivery.payload);
     const endingActivity = publicActivity(endPayload);
-    target = await store.activityPushTarget(endingActivity.id);
+    const target = await store.activityPushTarget(endingActivity.id);
     if (!target) {
       throw new ConflictError("The registered Live Activity token does not match this activity");
     }

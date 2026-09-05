@@ -10,14 +10,7 @@ public struct RelayRequestBuilder: Sendable {
     }
 
     public func request<Body: Encodable>(path: String, method: String, body: Body) throws -> URLRequest {
-        guard let url = URL(string: path, relativeTo: baseURL)?.absoluteURL,
-              url.scheme == "https",
-              url.host == baseURL.host else {
-            throw URLError(.badURL)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.setValue("Bearer \(deviceCredential)", forHTTPHeaderField: "Authorization")
+        var request = try request(path: path, method: method)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(body)
         return request

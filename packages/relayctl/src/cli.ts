@@ -284,7 +284,7 @@ export async function execute(argv: string[], runtime: RelayctlRuntime): Promise
         title: String(options.title),
         status: String(options.status),
         ...(options.detail ? { detail: String(options.detail) } : {}),
-        ...(numericOption(options, "progress") !== undefined ? { progress: numericOption(options, "progress") } : {}),
+        progress: numericOption(options, "progress"),
         ...(options.symbol ? { symbol: String(options.symbol) } : {}),
         ...(options["accent-color"] ? { accentColor: String(options["accent-color"]) } : {}),
         ...(options.key ? { key: String(options.key) } : {}),
@@ -300,10 +300,10 @@ export async function execute(argv: string[], runtime: RelayctlRuntime): Promise
     const payload = {
       ...(options.status ? { status: String(options.status) } : {}),
       ...(options.detail ? { detail: String(options.detail) } : {}),
-      ...(numericOption(options, "progress") !== undefined ? { progress: numericOption(options, "progress") } : {}),
+      progress: numericOption(options, "progress"),
       ...(options.symbol ? { symbol: String(options.symbol) } : {}),
       ...(options["accent-color"] ? { accentColor: String(options["accent-color"]) } : {}),
-      ...(numericOption(options, "sequence") !== undefined ? { sequence: numericOption(options, "sequence") } : {}),
+      sequence: numericOption(options, "sequence"),
     };
     const path = `/v1/activities/${encodeURIComponent(identifier)}${action === "end" ? "/end" : ""}`;
     const body = requireAccepted(await request(

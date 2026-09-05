@@ -1047,6 +1047,18 @@ describe("task Live Activity", () => {
 
     expect(JSON.parse(firstUpdate.delivery.payload!)).toMatchObject({ progress: 0.5, sequence: 2 });
     expect(await store.getActivity(started.activity.id)).toMatchObject({ progress: 0.75, sequence: 3 });
+
+    const replayedUpdate = await store.updateActivityIdempotent(started.activity.id, { progress: 0.5 }, "update-one");
+    expect(replayedUpdate).toMatchObject({
+      idempotent: true,
+      activity: { progress: 0.75, sequence: 3 },
+      delivery: { id: firstUpdate.delivery.id, payload: firstUpdate.delivery.payload, status: "superseded" },
+    });
+
+    const ended = await store.endActivityIdempotent(started.activity.id, {}, "end-one");
+    expect(ended.idempotent).toBe(false);
+    expect(await store.endActivityIdempotent(started.activity.id, {}, "end-one"))
+      .toEqual({ ...ended, idempotent: true });
   });
 
   test("allows distinct activities, requires replacement for duplicate keys, and rejects stale sequences", async () => {

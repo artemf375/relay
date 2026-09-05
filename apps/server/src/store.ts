@@ -1605,22 +1605,10 @@ export async function openRelayStore(options: RelayStoreOptions) {
       const operation = `activity:update:${identifier}`;
       return await transaction(async () => {
         const replay = await this.findMutation(operation, idempotencyKey, input);
-        if (replay) {
-          const activity = await this.getActivity(replay.resourceId);
-          return {
-            activity,
-            delivery: await ensureDeliveryIntent(
-              "activity",
-              activity.id,
-              "update",
-              idempotencyKey,
-              await desiredActivityPayload((await db().select().from(activities).where(eq(activities.id, activity.id)).get())!),
-            ),
-            idempotent: true,
-          };
-        }
-        const activity = await this.updateActivity(identifier, input);
-        await this.recordMutation(operation, idempotencyKey, input, activity.id);
+        const activity = replay
+          ? await this.getActivity(replay.resourceId)
+          : await this.updateActivity(identifier, input);
+        if (!replay) await this.recordMutation(operation, idempotencyKey, input, activity.id);
         return {
           activity,
           delivery: await ensureDeliveryIntent(
@@ -1630,7 +1618,7 @@ export async function openRelayStore(options: RelayStoreOptions) {
             idempotencyKey,
             await desiredActivityPayload((await db().select().from(activities).where(eq(activities.id, activity.id)).get())!),
           ),
-          idempotent: false,
+          idempotent: Boolean(replay),
         };
       });
     },
@@ -1696,20 +1684,14 @@ export async function openRelayStore(options: RelayStoreOptions) {
       const operation = `activity:end:${identifier}`;
       return await transaction(async () => {
         const replay = await this.findMutation(operation, idempotencyKey, input);
-        if (replay) {
-          const activity = await this.getActivity(replay.resourceId);
-          return {
-            activity,
-            delivery: await ensureDeliveryIntent("activity", activity.id, "end", idempotencyKey, activity),
-            idempotent: true,
-          };
-        }
-        const activity = await this.endActivity(identifier, input, reason);
-        await this.recordMutation(operation, idempotencyKey, input, activity.id);
+        const activity = replay
+          ? await this.getActivity(replay.resourceId)
+          : await this.endActivity(identifier, input, reason);
+        if (!replay) await this.recordMutation(operation, idempotencyKey, input, activity.id);
         return {
           activity,
           delivery: await ensureDeliveryIntent("activity", activity.id, "end", idempotencyKey, activity),
-          idempotent: false,
+          idempotent: Boolean(replay),
         };
       });
     },
